@@ -29,3 +29,44 @@ docker run -d -p 8080:8080 --name bad-practices-container bad-practices-app
 ```bash
 docker logs -f bad-practices-container
 ```
+
+
+
+
+
+## Action et Commande pour installer et utiliser Jenkins : 
+
+### Pull image :
+```
+docker pull jenkins/jenkins:lts
+```
+
+### Démarrer (docker run)
+
+```
+docker run -d --name jenkins-ci -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
+```
+
+### Récupérer le mot‑de‑passe admin
+
+```
+docker exec jenkins-ci cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+### Démarrer (docker‑compose)
+
+```
+docker-compose up -d
+```
+
+### Arrêter le service
+
+```
+docker stop jenkins-ci && docker rm jenkins-ci (ou docker-compose down)
+```
+
+### Supprimer le volume (départ clean)
+
+```
+docker volume rm jenkins_home
+```
