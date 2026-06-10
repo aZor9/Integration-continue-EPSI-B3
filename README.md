@@ -70,3 +70,19 @@ docker stop jenkins-ci && docker rm jenkins-ci (ou docker-compose down)
 ```
 docker volume rm jenkins_home
 ```
+
+
+
+# ⚠️ ce qui est en dessous est en test
+
+# si probleme dans jenkins lors du `file:///workspace` (dubious ownership.)
+
+souvent le dossier `workspace` n'est pas reconnu par jenkins, il faut donc l'autoriser.
+
+```
+docker exec -it jenkins-ci /bin/bash
+git config --global --add safe.directory /workspace
+git config --global --get-all safe.directory
+exit
+```
+puis supprimer le container et re run le container (ne pas supprimer le volume)
