@@ -7,15 +7,17 @@ import java.sql.Statement;
 
 public class UserService {
 
+    private String USER_PASSWORD = System.getenv("USER_PASSWORD");
+    private String USER_USERNAME = System.getenv("USER_USERNAME");
+    private String DB_URL = System.getenv("DB_URL");
     private String DB_PASSWORD = System.getenv("DB_PASSWORD");
     private String DB_USERNAME = System.getenv("DB_USERNAME");
-    private String DB_URL = System.getenv("DB_URL");
 
     public void login(String username, String password) {
         
         LoggerUtil.info("Tentative de connexion de l'utilisateur : " + username);
 
-        if (username.equals(DB_USERNAME) && password.equals(DB_PASSWORD)) {
+        if (username.equals(USER_USERNAME) && password.equals(USER_PASSWORD)) {
             LoggerUtil.info("Administrateur connecté avec succès.");
         } else {
             LoggerUtil.warning("Identifiants invalides.");
@@ -25,7 +27,7 @@ public class UserService {
             // Logique factice pour déclencher une exception
             int result = 10 / 0;
         } catch (Exception e) {
-            // Mauvaise pratique : bloc catch vide (l'erreur est ignorée silencieusement)
+            LoggerUtil.warning("Erreur lors de l'exception factice : " + e.getMessage());
         }
     }
 
@@ -35,7 +37,7 @@ public class UserService {
         ResultSet rs = null;
 
         try {
-            conn = DriverManager.getConnection(DB_URL, "root", DB_PASSWORD);
+            conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
             stmt = conn.createStatement();
             
             // Faille de sécurité majeure : Injection SQL possible via concaténation
@@ -62,24 +64,17 @@ public class UserService {
         }
     }
     
-    // Mauvaise pratique : méthode inutilement complexe avec de nombreux "if" imbriqués (complexité cyclomatique élevée)
     public void complexMethod(int a, int b, int c) {
-        if (a > 0) {
-            if (b > 0) {
-                if (c > 0) {
-                    LoggerUtil.info("Tous positifs");
-                } else {
-                    LoggerUtil.info("C est négatif");
-                }
-            } else {
-                if (c > 0) {
-                    LoggerUtil.info("B est négatif");
-                } else {
-                    LoggerUtil.info("B et C sont négatifs");
-                }
-            }
-        } else {
+        if (a <= 0) {
             LoggerUtil.info("A est négatif");
+        } else if (b <= 0 && c <= 0) {
+            LoggerUtil.info("B et C sont négatifs");
+        } else if (b <= 0) {
+            LoggerUtil.info("B est négatif");
+        } else if (c <= 0) {
+            LoggerUtil.info("C est négatif");
+        } else {
+            LoggerUtil.info("Tous positifs");
         }
     }
 }
