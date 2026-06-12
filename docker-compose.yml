@@ -1,6 +1,7 @@
-#sonarQube docker-compose file
+# Stack CI/CD : SonarQube + PostgreSQL + Jenkins
 
 services:
+
   sonarqube:
     image: sonarqube:community
     hostname: sonarqube
@@ -24,12 +25,13 @@ services:
       - "9000:9000"
     networks:
       - ${NETWORK_TYPE:-ipv4}
+
   db:
     image: postgres:17
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -44,12 +46,28 @@ services:
     networks:
       - ${NETWORK_TYPE:-ipv4}
 
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins-ci
+    hostname: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ${NETWORK_TYPE:-ipv4}
+    depends_on:
+      - sonarqube
+
 volumes:
   sonarqube_data:
   sonarqube_temp:
   sonarqube_extensions:
   sonarqube_logs:
   postgresql:
+  jenkins_home:
 
 networks:
   ipv4:
