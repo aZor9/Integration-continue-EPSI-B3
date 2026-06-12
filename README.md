@@ -93,6 +93,19 @@ Puis relancer le pipeline depuis l'interface Jenkins.
 
 ---
 
+## 🛠️ Installer Maven et JDK dans Jenkins
+
+Si votre pipeline échoue car Maven ou JDK ne sont pas configurés (et que vous ne souhaitez pas passer par l'interface de Jenkins "Global Tool Configuration"), vous pouvez les installer directement dans le conteneur avec ces commandes :
+
+```bash
+docker exec -u root jenkins-ci apt-get update
+docker exec -u root jenkins-ci apt-get install -y maven
+```
+
+*(Note : Si vous utilisez cette méthode, le bloc `tools` n'est plus nécessaire dans le `Jenkinsfile` car les outils seront accessibles globalement dans le système).*
+
+---
+
 ## 📦 Volumes persistants
 
 | Volume | Contenu |
