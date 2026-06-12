@@ -23,21 +23,26 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Compilation du projet...'
-                // TODO : Ajouter la commande Maven pour nettoyer et compiler le projet (sans lancer les tests)
-                // sh '...'
+                if (isUnix()) {
+                    sh 'mvn clean compile'
+                } else {
+                    bat 'mvn clean compile'
+                }
             }
         }
 
         stage('Test & Code Coverage') {
             steps {
                 echo 'Exécution des tests et génération du rapport JaCoCo...'
-                // TODO : Ajouter la commande Maven pour lancer les tests
-                // sh '...'
+                if (isUnix()) {
+                    sh 'mvn test'
+                } else {
+                    bat 'mvn test'
+                }
             }
             post {
                 always {
-                    // TODO : Indiquer à Jenkins où récupérer les rapports de tests au format XML (indice : plugin junit)
-                    // junit '...'
+                    junit 'target/surefire-reports/*.xml'
                 }
             }
         }
@@ -49,17 +54,20 @@ pipeline {
             }
             steps {
                 echo 'Analyse de la qualité du code avec SonarQube...'
-                // TODO : Ajouter la commande Maven pour lancer l'analyse SonarQube
-                // N'oubliez pas de passer les propriétés : sonar.projectKey, sonar.host.url et sonar.login
-                // sh '...'
+                if (isUnix()) {
+                    sh "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
+                } else {
+                    bat "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
+                }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                // TODO : Ajouter l'étape pour attendre le résultat du Quality Gate de SonarQube
-                // Indice : Il faut utiliser un 'timeout' englobant 'waitForQualityGate abortPipeline: true'
-                
+                // Attente du résultat du Quality Gate de SonarQube
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
@@ -67,11 +75,13 @@ pipeline {
             steps {
                 echo 'Création du JAR exécutable et de l\'image Docker...'
                 
-                // TODO : Ajouter la commande Maven pour créer le package complet (JAR) en ignorant les tests
-                // sh '...'
-                
-                // TODO : Ajouter la commande Docker pour construire l'image avec le tag "epsi/bad-practices-app:latest"
-                // sh '...'
+                if (isUnix()) {
+                    sh 'mvn package -DskipTests'
+                    sh 'docker build -t epsi/bad-practices-app:latest .'
+                } else {
+                    bat 'mvn package -DskipTests'
+                    bat 'docker build -t epsi/bad-practices-app:latest .'
+                }
             }
         }
     }
