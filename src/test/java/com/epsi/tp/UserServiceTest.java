@@ -10,11 +10,9 @@ public class UserServiceTest {
         UserService userService = new UserService();
         
         // On teste la méthode login avec les bons identifiants.
-        // Comme la méthode est void (une autre mauvaise pratique), on s'assure juste 
-        // qu'elle ne lève pas d'exception.
         // Ce test permet d'avoir une couverture de code partielle pour JaCoCo/SonarQube.
         assertDoesNotThrow(() -> {
-            userService.login("admin", "admin");
+            userService.login("admin", "super_secret_password_123!");
         });
     }
 }
