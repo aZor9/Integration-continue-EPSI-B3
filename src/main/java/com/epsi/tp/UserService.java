@@ -8,17 +8,16 @@ import java.sql.SQLException;
 
 public class UserService {
 
-    private String USER_PASSWORD = System.getenv("USER_PASSWORD");
-    private String USER_USERNAME = System.getenv("USER_USERNAME");
-    private String DB_URL = System.getenv("DB_URL");
-    private String DB_PASSWORD = System.getenv("DB_PASSWORD");
-    private String DB_USERNAME = System.getenv("DB_USERNAME");
-
+    private String userPassword = System.getenv("USER_PASSWORD");
+    private String userUsername = System.getenv("USER_USERNAME");
+    private String dbUrl = System.getenv("DB_URL");
+    private String dbPassword = System.getenv("DB_PASSWORD");
+    private String dbUsername = System.getenv("DB_USERNAME");
     public void login(String username, String password) {
         
         LoggerUtil.info("Tentative de connexion de l'utilisateur : " + username);
 
-        if (username.equals(USER_USERNAME) && password.equals(USER_PASSWORD)) {
+        if (username.equals(userUsername) && password.equals(userPassword)) {
             LoggerUtil.info("Administrateur connecté avec succès.");
         } else {
             LoggerUtil.warning("Identifiants invalides.");
@@ -33,9 +32,9 @@ public class UserService {
     }
 
     public void getUserDetails(String username) {
-    String query = "SELECT * FROM users WHERE username = ?";
+    String query = "SELECT username FROM users WHERE username = ?";
 
-    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+    try (Connection conn = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
          PreparedStatement stmt = conn.prepareStatement(query)) {
 
         stmt.setString(1, username);
