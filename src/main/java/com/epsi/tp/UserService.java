@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 public class UserService {
 
@@ -25,7 +26,8 @@ public class UserService {
         
         try {
             // Logique factice pour déclencher une exception
-            int result = 10 / 0;
+            int result = 10 / 1;
+            LoggerUtil.info("Résultat de l'opération factice : " + result);
         } catch (Exception e) {
             LoggerUtil.warning("Erreur lors de l'exception factice : " + e.getMessage());
         }

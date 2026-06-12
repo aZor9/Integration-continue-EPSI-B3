@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class UserServiceTest {
 
     @Test
-    public void testLoginAdmin() {
+    private void testLoginAdmin() {
         UserService userService = new UserService();
         
         // On teste la méthode login avec les bons identifiants.
