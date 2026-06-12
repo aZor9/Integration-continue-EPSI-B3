@@ -2,8 +2,9 @@ package com.epsi.tp;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.SQLException;
 
 public class UserService {
 
@@ -32,37 +33,23 @@ public class UserService {
     }
 
     public void getUserDetails(String username) {
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
+    String query = "SELECT * FROM users WHERE username = ?";
 
-        try {
-            conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
-            stmt = conn.createStatement();
-            
-            // Faille de sécurité majeure : Injection SQL possible via concaténation
-            String query = "SELECT * FROM users WHERE username = '" + username + "'";
-            rs = stmt.executeQuery(query);
-            
+    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+
+        stmt.setString(1, username);
+
+        try (ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 LoggerUtil.info("Utilisateur trouvé : " + rs.getString("username"));
             }
-        } catch (Exception e) {
-            LoggerUtil.error("Erreur lors de la récupération des détails utilisateur", e);
-        } finally {
-            // Mauvaise pratique : gestion archaïque des ressources (pas de try-with-resources)
-            // avec des catch vides
-            if (rs != null) {
-                try { rs.close(); } catch (Exception e) {}
-            }
-            if (stmt != null) {
-                try { stmt.close(); } catch (Exception e) {}
-            }
-            if (conn != null) {
-                try { conn.close(); } catch (Exception e) {}
-            }
         }
+
+    } catch (SQLException e) {
+        LoggerUtil.error("Erreur lors de la récupération des détails utilisateur", e);
     }
+}
     
     public void complexMethod(int a, int b, int c) {
         if (a <= 0) {
