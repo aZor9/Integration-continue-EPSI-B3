@@ -5,10 +5,6 @@ pipeline {
         maven 'Maven'
     }
 
-    environment {
-        SONAR_HOST_URL = 'http://sonarqube:9000'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -48,14 +44,17 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            environment {
+                SONAR_TOKEN = credentials('sonar-token')
+            }
             steps {
                 echo 'Analyse de la qualité du code avec SonarQube...'
                 withSonarQubeEnv('SonarQube') {
                     script {
                         if (isUnix()) {
-                            sh "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app"
+                            sh "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=http://sonarqube:9000"
                         } else {
-                            bat "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app"
+                            bat "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=http://sonarqube:9000"
                         }
                     }
                 }
