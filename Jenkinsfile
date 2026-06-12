@@ -7,6 +7,9 @@ pipeline {
     //     maven 'Maven' // Correspond au nom configuré pour Maven dans Jenkins
     //     jdk 'JDK 17'  // Correspond au nom configuré pour le JDK 17 dans Jenkins
     // }
+    tools {
+        maven 'Maven'
+    }
 
     environment {
         // Variables d'environnement
@@ -45,11 +48,11 @@ pipeline {
                     }
                 }
             }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
-            }
+        post {
+    always {
+        junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
+    }
+}
         }
 
         stage('SonarQube Analysis') {

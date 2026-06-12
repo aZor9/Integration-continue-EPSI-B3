@@ -114,3 +114,31 @@ docker exec -u root jenkins-ci apt-get install -y maven
 | `sonarqube_data` | Données SonarQube |
 | `sonarqube_logs` | Logs SonarQube |
 | `postgresql` | Base de données PostgreSQL |
+
+---
+
+## ⚙️ Configuration du Job Jenkins (Pipeline from SCM)
+
+Pour que l'instruction `checkout scm` du `Jenkinsfile` fonctionne, le job doit être lié à votre dépôt Git. Voici la procédure à suivre dans l'interface Jenkins :
+
+1. Poussez votre projet sur un dépôt Git distant (ex: GitHub, GitLab, etc.).
+2. Dans la configuration de votre job Jenkins, descendez jusqu'à la section **Pipeline**.
+3. Changez le champ "Definition" de *Pipeline script* à **Pipeline script from SCM**.
+4. Sélectionnez **Git** dans la liste déroulante "SCM" et collez l'URL de votre dépôt.
+5. ⚠️ **Erreur courante (Branch Specifier)** : Par défaut, Jenkins cherche la branche `*/master`. Si votre dépôt Git utilise la branche `main` (ce qui est le cas par défaut sur GitHub), vous obtiendrez l'erreur `couldn't find remote ref refs/heads/master`. **Changez le champ "Branches to build" en `*/main`**.
+6. Assurez-vous que le champ "Script Path" contient bien `Jenkinsfile`.
+7. Sauvegardez et lancez le build.
+
+---
+## 🔑 Configuration du Token SonarQube dans Jenkins
+Lors de l'exécution, si le pipeline s'arrête net avec une erreur `ERROR: sonar-token`, c'est que Jenkins n'a pas l'autorisation de se connecter à SonarQube. Voici la procédure à suivre :
+1. Allez sur **SonarQube** (http://localhost:9000), connectez-vous, puis allez dans **My Account** (en haut à droite) > **Security**.
+2. Générez un nouveau token de type "User Token" et **copiez-le**.
+3. Allez sur **Jenkins** > **Administrer Jenkins** (Manage Jenkins) > **Credentials**.
+4. Cliquez sur **System** (sous la liste "Stores scoped to Jenkins"), puis sur **Global credentials (unrestricted)**, et enfin sur **Add Credentials**.
+5. Remplissez le formulaire ainsi :
+   - **Kind** : `Secret text`
+   - **Secret** : *(collez ici le token copié depuis SonarQube)*
+   - **ID** : `sonar-token` *(attention, ce nom doit correspondre exactement à celui demandé dans le Jenkinsfile)*
+6. Cliquez sur **Create**. Le pipeline pourra désormais s'authentifier et envoyer le code à analyser !
+
