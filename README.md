@@ -47,12 +47,12 @@ docker pull jenkins/jenkins:lts
 docker run -d --name jenkins-ci -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
 ```
 
-```
-docker run -d --name jenkins-ci -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v //c/Users/FA506/Downloads/Code/Integration-continue-EPSI-B3:/workspace -u 1000:1000 jenkins/jenkins:lts
-```
+
+
 
 
 ### Récupérer le mot‑de‑passe admin
+user : admin
 
 ```
 docker exec jenkins-ci cat /var/jenkins_home/secrets/initialAdminPassword
@@ -91,3 +91,9 @@ git config --global --get-all safe.directory
 exit
 ```
 puis supprimer le container et re run le container (ne pas supprimer le volume)
+
+
+Exemple de test de run : 
+```
+docker run -d --name jenkins-ci -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v //c/Users/FA506/Downloads/Code/Integration-continue-EPSI-B3:/workspace -u 1000:1000 jenkins/jenkins:lts
+```
