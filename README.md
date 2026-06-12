@@ -1,28 +1,73 @@
 # tp_epsi_integration_continue
 
-Avec ce Dockerfile, il faut d'abord construire l'image puis lancer un conteneur.
+Stack CI/CD complète : **Jenkins** + **SonarQube** + **PostgreSQL**, lancés via Docker Compose sur le même réseau.
 
-### 1. Construire l'image
+---
 
-Depuis le dossier contenant le Dockerfile :
+## 🚀 Lancer toute la stack
+
+```bash
+docker-compose up -d
+```
+
+Cela démarre 3 conteneurs :
+- **jenkins-ci** → http://localhost:8080
+- **sonarqube** → http://localhost:9000
+- **postgresql** (base de données de SonarQube, pas d'interface)
+
+### Arrêter la stack
+
+```bash
+docker-compose down
+```
+
+### Supprimer les volumes (repartir de zéro)
+
+```bash
+docker-compose down -v
+```
+
+---
+
+## 🔑 Accès aux services
+
+### Jenkins
+
+Récupérer le mot de passe admin initial :
+
+```bash
+docker exec jenkins-ci cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+- URL : http://localhost:8080
+- User : `admin`
+- Password : (celui récupéré ci-dessus)
+
+### SonarQube
+
+- URL : http://localhost:9000
+- User : `admin`
+- Password : `admin` *(à changer dès la première connexion)*
+
+---
+
+## 🐳 Application (bonus : conteneurisation)
+
+Le `Dockerfile` à la racine permet de construire l'image de l'application Java.
+
+### Construire l'image manuellement
 
 ```bash
 docker build -t bad-practices-app .
 ```
 
-### 2. Lancer le conteneur
-
-Si ton application écoute sur le port 8080 :
+### Lancer le conteneur
 
 ```bash
-docker run -p 8080:8080 bad-practices-app
+docker run -d -p 8081:8080 --name bad-practices-container bad-practices-app
 ```
 
-Ou en arrière-plan :
-
-```bash
-docker run -d -p 8080:8080 --name bad-practices-container bad-practices-app
-```
+> ⚠️ On utilise le port **8081** en local pour ne pas entrer en conflit avec Jenkins (port 8080).
 
 ### Vérifier les logs
 
@@ -30,64 +75,42 @@ docker run -d -p 8080:8080 --name bad-practices-container bad-practices-app
 docker logs -f bad-practices-container
 ```
 
+---
 
+## ⚠️ Problème Git : dubious ownership
 
+Si Jenkins affiche une erreur `dubious ownership` lors du Checkout, c'est un problème de permissions Git dans le conteneur.
 
+**Solution :**
 
-## Action et Commande pour installer et utiliser Jenkins : 
-
-### Pull image :
-```
-docker pull jenkins/jenkins:lts
-```
-
-### Démarrer (docker run)
-
-```
-docker run -d --name jenkins-ci -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
-```
-
-
-
-
-
-### Récupérer le mot‑de‑passe admin
-user : admin
-
-```
-docker exec jenkins-ci cat /var/jenkins_home/secrets/initialAdminPassword
-```
-
-### Démarrer (docker‑compose)
-
-```
-docker-compose up -d
-```
-
-### Arrêter le service
-
-```
-docker stop jenkins-ci && docker rm jenkins-ci (ou docker-compose down)
-```
-
-### Supprimer le volume (départ clean)
-
-```
-docker volume rm jenkins_home
-```
-
-
-
-# ⚠️ ce qui est en dessous est en test
-
-# si probleme dans jenkins lors du `file:///workspace` (dubious ownership.)
-
-souvent le dossier `workspace` n'est pas reconnu par jenkins, il faut donc l'autoriser.
-
-```
+```bash
 docker exec -it jenkins-ci /bin/bash
-git config --global --add safe.directory /workspace
-git config --global --get-all safe.directory
+git config --global --add safe.directory /var/jenkins_home/workspace/<nom-du-job>
 exit
 ```
-puis supprimer le container et re run le container (ne pas supprimer le volume)
+
+Puis relancer le pipeline depuis l'interface Jenkins.
+
+---
+
+## 🛠️ Installer Maven et JDK dans Jenkins
+
+Si votre pipeline échoue car Maven ou JDK ne sont pas configurés (et que vous ne souhaitez pas passer par l'interface de Jenkins "Global Tool Configuration"), vous pouvez les installer directement dans le conteneur avec ces commandes :
+
+```bash
+docker exec -u root jenkins-ci apt-get update
+docker exec -u root jenkins-ci apt-get install -y maven
+```
+
+*(Note : Si vous utilisez cette méthode, le bloc `tools` n'est plus nécessaire dans le `Jenkinsfile` car les outils seront accessibles globalement dans le système).*
+
+---
+
+## 📦 Volumes persistants
+
+| Volume | Contenu |
+|---|---|
+| `jenkins_home` | Config Jenkins, jobs, plugins |
+| `sonarqube_data` | Données SonarQube |
+| `sonarqube_logs` | Logs SonarQube |
+| `postgresql` | Base de données PostgreSQL |
