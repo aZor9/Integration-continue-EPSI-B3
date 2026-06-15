@@ -6,6 +6,10 @@ import java.util.logging.Level;
 public class LoggerUtil {
     private static final Logger logger = Logger.getLogger(LoggerUtil.class.getName());
 
+    private LoggerUtil() {
+        // Constructeur private
+    }
+
     public static void info(String message) {
         logger.log(Level.INFO, message);
     }
