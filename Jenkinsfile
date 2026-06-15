@@ -1,22 +1,13 @@
 pipeline {
     agent any
 
-    // Outils à définir dans la configuration Jenkins (Manage Jenkins -> Global Tool Configuration)
-    // Commenté car vous installez ces outils au niveau du système du conteneur (voir README)
-    // tools {
-    //     maven 'Maven' // Correspond au nom configuré pour Maven dans Jenkins
-    //     jdk 'JDK 17'  // Correspond au nom configuré pour le JDK 17 dans Jenkins
-    // }
-
-    environment {
-        // Variables d'environnement
-        SONAR_HOST_URL = 'http://sonarqube:9000'
+    tools {
+        maven 'Maven'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Récupération du code source depuis Git
                 checkout scm
             }
         }
@@ -47,23 +38,24 @@ pipeline {
             }
             post {
                 always {
-                    junit 'target/surefire-reports/*.xml'
+                    junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
                 }
             }
         }
 
         stage('SonarQube Analysis') {
             environment {
-                // Nécessite de configurer un secret text "sonar-token" dans Jenkins
                 SONAR_TOKEN = credentials('sonar-token')
             }
             steps {
                 echo 'Analyse de la qualité du code avec SonarQube...'
-                script {
-                    if (isUnix()) {
-                        sh "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
-                    } else {
-                        bat "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
+                withSonarQubeEnv('SonarQube') {
+                    script {
+                        if (isUnix()) {
+                            sh "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=http://sonarqube:9000"
+                        } else {
+                            bat "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=http://sonarqube:9000"
+                        }
                     }
                 }
             }
@@ -71,7 +63,6 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                // Attente du résultat du Quality Gate de SonarQube
                 timeout(time: 1, unit: 'HOURS') {
                     waitForQualityGate abortPipeline: true
                 }
@@ -81,7 +72,6 @@ pipeline {
         stage('Package & Docker Build') {
             steps {
                 echo 'Création du JAR exécutable et de l\'image Docker...'
-                
                 script {
                     if (isUnix()) {
                         sh 'mvn package -DskipTests'
