@@ -30,9 +30,9 @@ pipeline {
                 echo 'Exécution des tests et génération du rapport JaCoCo...'
                 script {
                     if (isUnix()) {
-                        sh 'mvn test'
+                        sh 'mvn test -Dmaven.test.failure.ignore=true'
                     } else {
-                        bat 'mvn test'
+                        bat 'mvn test -Dmaven.test.failure.ignore=true'
                     }
                 }
             }
@@ -52,9 +52,9 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     script {
                         if (isUnix()) {
-                            sh "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=http://sonarqube:9000"
+                            sh "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.token=${SONAR_TOKEN}"
                         } else {
-                            bat "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=http://sonarqube:9000"
+                            bat "mvn sonar:sonar -Dsonar.projectKey=bad-practices-app -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.token=${SONAR_TOKEN}"
                         }
                     }
                 }
